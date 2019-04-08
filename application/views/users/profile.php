@@ -12,7 +12,10 @@ $zipcode = $userInfo->zipcode;
     <!-- Content Header (Page header) -->
     <section class="content-header">
 
-        <h1><?= $title ?></h1> <br />
+        <h1>
+            <?= $title ?>
+                <small class="text-muted"><?= $subtitle ?></small>
+        </h1> <br />
 
     </section>
 

@@ -14,7 +14,7 @@
     <section class="content">
 
         <table id="table" class="table table-bordered table-striped ">
-
+Datatables ne marche pas à cause de la protection CSRF, si on la desactive il remarche
             <thead>
                 <tr>
                     <td>Nom</td>

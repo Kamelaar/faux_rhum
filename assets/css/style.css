@@ -37,12 +37,6 @@ a.pagination-link{
     border-radius: 0px !important
 }
 
-/*
-.alert {
-    background-color: black !important
-}
-*/
-
 .category-text-color {
     color: lightcoral !important
 }
@@ -58,6 +52,52 @@ div.dt-buttons,  div.dt-f{
 
 div.dataTables_filter {
     float: right !important;
+}
+
+
+.home_stats{
+	padding-top: 3%;
+}
+
+.home_posts{
+	display: inline-block;
+	padding-top: 3%;
+}
+
+.home_posts h2{
+	text-align: center;
+}
+
+.user_charter h2{
+	padding-top: 3%;
+	text-align: center;
+}
+
+.user_charter p{
+	text-align: justify;
+}
+
+.emailtel{
+	padding-top: 2%;
+}
+
+.welcome{
+	text-align: center;
+}
+
+.welcome p{
+	font-size: 20px;
+	color: #4B088A;
+	padding-top: 2%;
+}
+
+.post_title{
+	color: #5882FA;
+	font-family: Bookman Old Style;
+}
+
+.table th{
+	text-align: center;
 }
 
 

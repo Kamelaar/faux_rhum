@@ -1,9 +1,21 @@
-<h2><?= $title ?></h2>
-<?php 
+<section class="content-header">
+
+	<h1>
+		<?= $title ?>
+			<small class="text-muted"><?= $subtitle ?></small>
+	</h1> <br />
+
+</section>
+
+<section>
+
+<?php
+	
+if($posts):	
 	
 foreach($posts as $post) : ?>
 
-	<h3><?php echo $post['title']; ?> | <em> Lancée par <?php echo $post['author'] ?></em> </h3>
+	<h3 class = "post_title"><?php echo $post['title']; ?> | <em> Lancée par <?php echo $post['author'] ?></em> </h3>
 
 	<div class="row">
 		<div class="col-md-3">
@@ -17,9 +29,20 @@ foreach($posts as $post) : ?>
 		<p><a class="btn btn-default" href="<?php echo site_url('/posts/'.$post['slug']); ?>">Découvrir</a></p>
 		</div>
 	</div>
+	
+	<hr>
 
 <?php endforeach; ?>
 
 <div class="pagination-links">
 		<?php echo $this->pagination->create_links(); ?>
 </div>
+	
+<?php else : ?>
+
+<p><em>Aucune discussion disponible dans le forum.</em></p>
+
+<?php endif; ?>
+
+	
+</section>

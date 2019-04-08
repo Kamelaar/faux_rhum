@@ -1,210 +1,109 @@
-<h2>
-    <?= $title ?>
-</h2> <br />
 
-<p>Bienvenue sur le Faux Rhum</p>
 
-<p>Nous avons un total de
-    <?= $totalMembers ?> heureux membres</p> <br />
+<section>
 
-<h3 align="center">Membres les plus actifs</h3> <br />
+<div class="container-fluid">
+   <div class="row">
+	<img src="<?= base_url('assets/images/banner.jpg')?>" class="img-responsive">
+   </div>
+</div> <br />
 
-<table class="table table-bordered table-striped">
+</section>
 
-    <thead>
-        <tr>
-            <th>Classement</th>
-            <th>Nom</th>
-            <th>Nombre de discussions</th>
-        </tr>
-    </thead>
-    <tbody>
+<hr>
 
-        <!--Loop for browsing $top3Members table-->
-        <?php foreach($top3Members as $top3) : ?>
+<section class = "home_stats">
 
-        <tr>
-            <td>
-                <?php echo $ranking ?> </td>
-            <td>
-                <?php echo $top3['author'] ?> </td>
-            <td>
-                <?php echo $top3['COUNT(user_id)'] ?>
-            </td>
-        </tr>
+<div class="welcome col-md-6 ">
 
-        <!--Ranking variable incrementation-->
-        <?php $ranking +=1 ?>
+	<h2>Bienvenue dans votre forum</h2> <br />
 
-        <?php endforeach; ?>
-
-    </tbody>
-
-</table> <br />
-
-<h3>Mode Maintenance</h3> <br />
-
-<!--Maintenance mode button totally active-->
-<div class="btn-group btn-toggle">
-	<?php 
+	<p>Vous faites partie de nos <?= $totalMembers ?> heureux membres</p>
+	<p>Vous pouvez publier des discussions et des commentaires</p>
+	<p>Faites nous part de vos suggestions</p>
 	
-	$maintenance = $maintenanceStatus->maintenance_mode;
+</div> 
 	
-	if ($maintenance == 0){ 
-	?> 
-		<button id="on" class="btn btn-default ">ON</button>
-		<button id="off" class="btn btn-primary active">OFF</button>
-	<?php
-	}
-	else
-	{
-	?>
-		<button id="on" class="btn btn-primary active ">ON</button>
-		<button id="off" class="btn btn-default">OFF</button>
-	<?php
-	}
-	?>
+<div class="col-md-6 " align ="center">
+
+<h2>Membres les plus actifs</h2> <br />
+
+<div class="panel panel-default">
+	
+	<table class="table table-bordered table-striped ">
+
+		<thead>
+			<tr>
+				<th>Classement</th>
+				<th>Nom</th>
+				<th>Nombre de discussions</th>
+			</tr>
+		</thead>
+		<tbody>
+
+			<!--Loop for browsing $top3Members table-->
+			<?php foreach($top3Members as $top3) : ?>
+
+			<tr>
+				<td>
+					<?php echo $ranking ?> </td>
+				<td>
+					<?php echo $top3['author'] ?> </td>
+				<td>
+					<?php echo $top3['COUNT(user_id)'] ?>
+				</td>
+			</tr>
+
+			<!--Ranking variable incrementation-->
+			<?php $ranking +=1 ?>
+
+			<?php endforeach; ?>
+
+		</tbody>
+
+	</table>
+	
+</div>	
+	
+</div>
+	
+</section>
+
+<hr>
+
+<section class = "home_posts">
+	
+<?php if ($posts): ?>
+
+<h2><?= $lastDiscussions ?></h2> <br />
+<?php 
+	
+foreach($posts as $post) : ?>
+
+	<h3 class = "post_title"><?php echo $post['title']; ?> | <em> Lancée par <?php echo $post['author'] ?></em> </h3>
+
+	<div class="row">
+		<div class="col-md-3">
+			<img class="post-thumb" src="<?php echo site_url(); ?>assets/images/posts/<?php echo $post['post_image']; ?>">
+		</div>
 		
-</div>
-<!--/Maintenance mode button totally active-->
-
-<br />
-
-    <h3>Mode Maintenance</h3> 
-
-<!--Maintenance mode switch button not finished-->
-<div class="form-group">
-
-    <div class="checkbox">
-
-        <input type="checkbox" name="gender" id="gender" checked/>
-
-    </div>
-</div>
-<input type="hidden" name="hidden_gender" id="hidden_gender" value="male" />
-<!--/Maintenance mode switch button not finished-->
-
-
-
-<script>
-	//Colors of the on/off button
-    $('.btn-toggle').click(function() {
-        $(this).find('.btn').toggleClass('active');
-
-        if ($(this).find('.btn-primary').length > 0) {
-            $(this).find('.btn').toggleClass('btn-primary');
-            //		alert("Boutton cliqué.");
-        }
-
-        $(this).find('.btn').toggleClass('btn-default');
-
-
-
-    });
-
-</script>
-
-
-
-
-<script>
-	//Functions of the on/off button
-    $(document).ready(function() {
-
-        $("#on").click(function() {
-            var action = "on";
-            $.ajax({
-//				type: "GET",
-//              url: '<?php echo base_url("pages/maintenance/on") ?>',
-//				data: 'action' + action,
-//              success: function(data) {
-//              	alert("Boutton ON cliqué.");
-				
-				type: 'post',
-				contentType: 'application/x-www-form-urlencoded', 
-              	url: '<?php echo base_url("pages/maintenance") ?>',
-				data: {'action' : action},
-              	success: function(data) {
-              	alert("Mode maintenance activé");
-                }
-            })
-        });
-
-        $("#off").click(function() {
-            var action = "off";
-
-            $.ajax({
-//				type: "GET",
-//              url: '<?php echo base_url("pages/maintenance/off") ?>',
-//				data: 'action' + action,
-//              success: function(data) {
-//              	alert("Boutton OFF cliqué.");
-				
-				type: "post",
-				contentType: 'application/x-www-form-urlencoded', 
-              	url: '<?php echo base_url("pages/maintenance") ?>',
-				data: {'action' : action},
-              	success: function(data) {
-              	alert("Mode maintenance desactivé.");
-                }
-            })
-        });
-
-
-    });
-
-</script>
-
-
-
-<script>
+		<div class="col-md-9">
+			<small class="post-date">Publiée le <?= date("d/m/Y à H:i:s",strtotime($post['created_at'])) ?> dans la catégorie <strong><?php echo $post['name']; ?></strong></small><br>
+		<?php echo word_limiter($post['body'], 60); ?>
+		<br><br>
+		<p><a class="btn btn-default" href="<?php echo site_url('/posts/'.$post['slug']); ?>">Découvrir</a></p>
+		</div>
+	</div>
 	
-//Functions of the on/off switch button
-$(document).ready(function() {
+<hr>
 
-$('#gender').bootstrapToggle();
+<?php endforeach; ?>
+	
+<?php else : ?>
 
-$('#gender').change(function(){
-    if ($(this).prop('checked'))
-    {
-	var action = "on";
-	$.ajax({
-//				type: "GET",
-//              url: '<?php echo base_url("pages/maintenance/on") ?>',
-//				data: 'action' + action,
-//              success: function(data) {
-//              	alert("Boutton ON cliqué.");
+<p><em>Aucune discussion récente dans le forum.</em></p>
 
-			type: 'post',
-			contentType: 'application/x-www-form-urlencoded', 
-			url: '<?php echo base_url("pages/maintenance") ?>',
-			data: {'action' : action},
-			success: function(data) {
-			alert("Mode maintenance activé");
-			}
-		})
-    }
-    else
-    {
-	var action = "off";
-	$.ajax({
-//				type: "GET",
-//              url: '<?php echo base_url("pages/maintenance/off") ?>',
-//				data: 'action' + action,
-//              success: function(data) {
-//              	alert("Boutton OFF cliqué.");
+<?php endif; ?>
 
-	type: "post",
-	contentType: 'application/x-www-form-urlencoded', 
-	url: '<?php echo base_url("pages/maintenance") ?>',
-	data: {'action' : action},
-	success: function(data) {
-	alert("Mode maintenance desactivé.");
-	}
-	})
-    }
-});
+</section>
 
-    });
-
-</script>

@@ -10,13 +10,8 @@
 			return $query->result_array();
 		}
 
-		public function create_category(){
-			$data = array(
-				'name' => $this->input->post('name'),
-				'user_id' => $this->session->userdata('user_id')
-			);
-
-			return $this->db->insert('categories', $data);
+		public function create_category($categoryInfo){
+			$this->db->insert('categories', $categoryInfo);
 		}
 
 		public function get_category($id){

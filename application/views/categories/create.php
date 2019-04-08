@@ -1,11 +1,14 @@
-<h2><?= $title ;?></h2>
+<h1>
+            <?= $title ?>
+                <small class="text-muted"><?= $subtitle ?></small>
+        </h1> <br />
 
 <?php echo validation_errors(); ?>
 
 <?php echo form_open_multipart('categories/create'); ?>
 	<div class="form-group">
 		<label>Nom</label>
-		<input type="text" class="form-control" name="name" placeholder="Nouvelle catégorie">
+		<input type="text" class="form-control" name="category_name" placeholder="Nouvelle catégorie">
 	</div>
 	<button type="submit" class="btn btn-default">Créer</button>
 </form>

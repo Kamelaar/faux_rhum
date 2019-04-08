@@ -33,7 +33,7 @@ $config['base_url'] = 'http://localhost/faux_rhum';
 | Typically this will be your index.php file, unless you've renamed it to
 | something else. If you are using mod_rewrite to remove the page set this
 | variable so that it is blank.
-|
+|²
 */
 $config['index_page'] = '';
 
@@ -439,8 +439,8 @@ $config['global_xss_filtering'] = FALSE;
 | 'csrf_exclude_uris' = Array of URIs which ignore CSRF checks
 */
 $config['csrf_protection'] = FALSE;
-$config['csrf_token_name'] = 'csrf_test_name';
-$config['csrf_cookie_name'] = 'csrf_cookie_name';
+$config['csrf_token_name'] = 'Protect_Kamkam';
+$config['csrf_cookie_name'] = 'Cookie_Doug_Kamkam';
 $config['csrf_expire'] = 7200;
 $config['csrf_regenerate'] = TRUE;
 $config['csrf_exclude_uris'] = array();
@@ -534,7 +534,6 @@ foreach( $result as $row)
 {
     $config['maintenance_mode'] = $row->maintenance_mode;
 }
-
 
 
 

@@ -1,4 +1,11 @@
-<h2><?= $title; ?></h2>
+<section class="content-header">
+
+	<h1>
+		<?= $title ?>
+			<small class="text-muted"><?= $subtitle ?></small>
+	</h1> <br />
+
+</section>
 
 <?php echo validation_errors(); ?>
 

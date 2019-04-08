@@ -1,68 +1,90 @@
-<?php 
+<?php if(!defined('BASEPATH')) exit('No direct script access allowed');
 
-	class Categories extends CI_Controller{
-		public function index(){
-			$data['title'] = 'Categories';
+require APPPATH . '/libraries/BaseController.php';
 
-			$data['categories'] = $this->category_model->get_categories();
+class Categories extends BaseController{
+	
+	public function __construct(){
+		parent::__construct();
+	}
+	
+	public function index(){
+		
+		$this->maintenance_redirection();
+		
+		$data['title'] = 'Catégories';
+		$data['subtitle'] = 'Toutes les catégories';
 
-			$this->load->view('templates/header');
-			$this->load->view('categories/index', $data);
-			$this->load->view('templates/footer');
+		$data['categories'] = $this->category_model->get_categories();
+
+		$this->load->view('templates/header');
+		$this->load->view('categories/index', $data);
+		$this->load->view('templates/footer');
+	}
+
+	public function create(){
+		// Check login
+		if(!$this->session->userdata('logged_in')){
+			redirect('users/login');
+		//Check if admin	
+		} else if (!$this->session->userdata('admin_role')){
+			redirect('categories/index'); 
 		}
 
-		public function create(){
-			// Check login
-			if(!$this->session->userdata('logged_in')){
-				redirect('users/login');
-                
-			} else if (!$this->session->userdata('admin_role')){
-                redirect('categories/index'); 
-            }
+		$data['title'] = 'Catégories';
+		$data['subtitle'] = 'Création / Suppression';
+
+		$data['categories'] = $this->category_model->get_categories();
+
+		$this->form_validation->set_rules('category_name', 'Name', 'required|is_unique[categories.name]',
+										  array('is_unique' => 'Catégorie déjà existante!'));
+
+		if($this->form_validation->run() === FALSE){
+			$this->load->view('templates/header');
+			$this->load->view('categories/create', $data);
+			$this->load->view('templates/footer');
+
+		} else {
 			
-			$data['title'] = 'Créer une nouvelle catégorie';
-            
-            $data['categories'] = $this->category_model->get_categories();
-
-			$this->form_validation->set_rules('name', 'Name', 'required|is_unique[categories.name]',
-											  array('is_unique' => 'Catégorie déjà existante!'));
-
-			if($this->form_validation->run() === FALSE){
-				$this->load->view('templates/header');
-				$this->load->view('categories/create', $data);
-				$this->load->view('templates/footer');
-				
-			} else {
-				$this->category_model->create_category();
-
-				// Set message
-				$this->session->set_flashdata('category_created', 'Nouvelle catégorie créée!');
-
-				redirect('categories/create');
-			}
-		}
-
-		public function posts($id){
-			$data['title'] = $this->category_model->get_category($id)->name;
-
-			$data['posts'] = $this->post_model->get_posts_by_category($id);
-
-			$this->load->view('templates/header');
-			$this->load->view('posts/index', $data);
-			$this->load->view('templates/footer');
-		}
-
-		public function delete($id){
-			// Check login
-			if(!$this->session->userdata('logged_in')){
-				redirect('users/login');
-			}
-
-			$this->category_model->delete_category($id);
+			$category_name		= $this->security->xss_clean($this->input->post('category_name'));
+			$creator 			= $this->session->userdata('username');
+			$creator_user_id 	= $this->session->userdata('user_id');
+			
+			// Table with category sent to the database
+			$categoryInfo = array('name'		=> $category_name,
+								  'user_id'		=> $creator_user_id,
+								  'created_by'	=> $creator);
+			
+			$this->category_model->create_category($categoryInfo);
 
 			// Set message
-			$this->session->set_flashdata('category_deleted', 'Catégorie supprimée');
+			$this->session->set_flashdata('category_created', 'Nouvelle catégorie créée!');
 
 			redirect('categories/create');
 		}
 	}
+
+	public function posts($id){
+		$data['title'] = $this->category_model->get_category($id)->name;
+		$data['subtitle'] = 'Les discussions de la catégorie';
+		$data['posts'] = $this->post_model->get_posts_by_category($id);
+
+		$this->load->view('templates/header');
+		$this->load->view('posts/index', $data);
+		$this->load->view('templates/footer');
+	}
+
+	public function delete($id){
+		// Check login
+		if(!$this->session->userdata('logged_in')){
+			redirect('users/login');
+		}
+
+		$this->category_model->delete_category($id);
+
+		// Set message
+		$this->session->set_flashdata('category_deleted', 'Catégorie supprimée');
+
+		redirect('categories/create');
+	}
+}

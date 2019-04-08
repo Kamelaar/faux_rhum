@@ -21,5 +21,16 @@ class BaseController extends CI_Controller {
             return false;
         }
     }
+	
+	public function maintenance_redirection(){
+		
+		$maintenance = $this->page_model->maintenanceStatus();
+		
+		if((!$this->session->userdata('logged_in')) and ($maintenance->maintenance_mode == MAINTENANCE_ON)){
+			redirect('users/login');
+		}
     
+	}
+	
 }
+	

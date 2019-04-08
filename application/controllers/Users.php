@@ -6,34 +6,63 @@ class Users extends BaseController{
         
 	public function __construct(){
 		parent::__construct();
-
-		// load Session Library
-		$this->load->library('session');
 	}
 	
 	public function index(){
+		$this->maintenance_redirection();
 		profile();
 	}
 
 	// Register user
 	public function register(){
+		
+		$this->maintenance_redirection();
+		
 		$data['title'] = 'Inscription';
 
-		$this->form_validation->set_rules('name', 'Nom', 'required');
-		$this->form_validation->set_rules('username', 'Pseudo', 'required|callback_check_username_exists');
-		$this->form_validation->set_rules('email', 'Email', 'required|callback_check_email_exists');
-		$this->form_validation->set_rules('password', 'Mot de passe', 'required');
-		$this->form_validation->set_rules('password2', 'Confirmation du mot passe', 'matches[password]');
+		$this->form_validation->set_rules('name', 'Nom', 'required', 
+										  array('required' => 'Vous n\'avez pas saisi de nom!'));
+		
+		$this->form_validation->set_rules('username', 'Pseudo', 'required|callback_check_username_exists', 
+										  array('required' => 'Vous n\'avez pas saisi de pseudo!'));
+		
+		$this->form_validation->set_rules('email', 'Email', 'required|callback_check_email_exists', 
+										  array('required' => 'Vous n\'avez pas saisi d\'email!'));
+		
+		$this->form_validation->set_rules('zipcode', 'Code postal', 'required', 
+										  array('required' => 'Vous n\'avez pas saisi de code postal!'));
+		
+		$this->form_validation->set_rules('password', 'Mot de passe', 'required|min_length[8]',
+										  array('required' => 'Vous n\'avez pas saisi de mot de passe!',
+											   	'min_length' => 'Le mot de passe doit faire au moins 8 caractères!'
+											   ));
+		
+		$this->form_validation->set_rules('password2', 'Confirmation du mot passe', 'matches[password]', 
+										  array('required' => 'Vous n\'avez pas confirmé vore mot de passe!'));
 
 		if($this->form_validation->run() === FALSE){
 			$this->load->view('templates/header');
 			$this->load->view('users/register', $data);
 			$this->load->view('templates/footer');
 		} else {
-			// Encrypt password
-			$enc_password = md5($this->input->post('password'));
-
-			$this->user_model->register($enc_password);
+			//Xss clean to avoid script hacks
+			$name		= $this->security->xss_clean($this->input->post('name'));
+			$username	= $this->security->xss_clean($this->input->post('username')); 
+			$email		= $this->security->xss_clean($this->input->post('email'));
+			$zipcode	= $this->security->xss_clean($this->input->post('zipcode'));
+			$password	= $this->input->post('password');									
+			
+			//table with user data sent to database
+			$userInfo = array('name'		=> $name,
+							  'username'	=> $username,
+							  'email'		=> $email,
+							  'zipcode'		=> $zipcode,
+							  //Password hash
+							  'password'	=> password_hash($password, PASSWORD_BCRYPT)
+							 );
+			
+			//function with the userInfo table to register user
+			$this->user_model->register($userInfo);
 
 			// Set message
 			$this->session->set_flashdata('user_registered', 'Vous êtes désormais membre du Faux Rhum, vous pouvez vous connecter!');
@@ -41,17 +70,21 @@ class Users extends BaseController{
 			redirect('users/login');
 		}
 	}
+	
 
 	// Log in user
 	public function login(){
-
+		
+		// Redirecting if already logged
 		if($this->session->userdata('logged_in')){
 
 			$this->session->set_flashdata('user_allready_loggedIn', 'Vous êtes déjà connecté!');
 
 			redirect('posts');
 		}
-
+		
+		$maintenance = $this->page_model->maintenanceStatus();
+		
 		$data['title'] = 'Loguez-vous!';
 
 		$this->form_validation->set_rules('username', 'Username', 'required');
@@ -62,33 +95,40 @@ class Users extends BaseController{
 			$this->load->view('users/login', $data);
 			$this->load->view('templates/footer');
 		} else {
-
-			// Get username
-			$username = $this->input->post('username');
-			// Get and encrypt the password
-			$password = md5($this->input->post('password'));
+			
+			// Xss clean to avoid script hacks
+			$username = $this->security->xss_clean($this->input->post('username'));
+			$password = $this->input->post('password');
 
 			// Login user
-			$user_id = $this->user_model->login($username, $password);
+			$userInfo = $this->user_model->login($username, $password);
+	
 
-
-			if($user_id){
+			if($userInfo){
+				$user_id	= $userInfo->id;
+				$username	= $userInfo->username;
 
 				$row = $this->user_model->getUserRole($user_id);
 				$role = $row -> role_id;
 
 				if($role == 1){
 					// Create session
-					$user_data = array(
-						'user_id' => $user_id,
-						'username' => $username,
-						'logged_in' => true,
-						'admin_role' => true
-					);
+					$user_data = array('user_id'	=> $user_id,
+									   'username'	=> $username,
+									   'logged_in'	=> true,
+									   'admin_role'	=> true
+									  );
+					
 					$this->session->set_userdata($user_data);
 
 					//Storing the members login history
-					$loginInfo = array("userId"=>$user_id, "sessionData" => json_encode($user_data), "machineIp"=>$_SERVER['REMOTE_ADDR'], "userAgent"=>$this->getBrowserAgent(), "agentString"=>$this->agent->agent_string(), "platform"=>$this->agent->platform());
+					$loginInfo = array("userId"			=> $user_id, 
+									   "sessionData"	=> json_encode($user_data), 
+									   "machineIp"		=> $_SERVER['REMOTE_ADDR'], 
+									   "userAgent"		=> $this->getBrowserAgent(), 
+									   "agentString"	=> $this->agent->agent_string(), 
+									   "platform"		=> $this->agent->platform()
+									  );
 
 					$this->user_model->lastLogin($loginInfo);
 
@@ -96,19 +136,29 @@ class Users extends BaseController{
 
 					redirect('home');
 
-				} else {
+				} else if ($maintenance->maintenance_mode == MAINTENANCE_ON){
+						// Set message
+						$this->session->set_flashdata('maintenance_mode', 'Le Faux Rhum est en maintenance, nous vous prions de nous excuser pour le désagrément, nous serons de retour très rapidement...');
+
+						redirect('users/login');
+					}else {
 
 					// Create session
-					$user_data = array(
-						'user_id' => $user_id,
-						'username' => $username,
-						'logged_in' => true
-					);
+					$user_data = array('user_id'	=> $user_id,
+									   'username'	=> $username,
+									   'logged_in'	=> true
+									  );
 
 					$this->session->set_userdata($user_data);
 
 					//Storing the members login history
-					$loginInfo = array("userId"=>$user_id, "sessionData" => json_encode($user_data), "machineIp"=>$_SERVER['REMOTE_ADDR'], "userAgent"=>$this->getBrowserAgent(), "agentString"=>$this->agent->agent_string(), "platform"=>$this->agent->platform());
+					$loginInfo = array("userId"			=> $user_id, 
+									   "sessionData"	=> json_encode($user_data), 
+									   "machineIp"		=> $_SERVER['REMOTE_ADDR'], 
+									   "userAgent"		=> $this->getBrowserAgent(), 
+									   "agentString"	=> $this->agent->agent_string(), 
+									   "platform"		=> $this->agent->platform()
+									  );
 
 					$this->user_model->lastLogin($loginInfo);
 
@@ -164,6 +214,7 @@ class Users extends BaseController{
 
 	public function profile(){
 		$data['title'] = 'Mon profil';
+		$data['subtitle'] = 'Voir / Editer / Supprimer';
 		$data['userInfo'] = $this->user_model->get_profile($this->session->userdata('user_id'));
 
 		$this->load->view('templates/header');
@@ -220,9 +271,9 @@ class Users extends BaseController{
 			redirect('home'); 
 		}
 
-		$data['title'] = 'Gestion des membres';
-		$data['subtitle'] = 'Informations générales';
-		$data['all_members'] = $this->user_model->getMembers();
+		$data['title']			= 'Membres';
+		$data['subtitle']		= 'Gestion des membres';
+		$data['all_members']	= $this->user_model->getMembers();
 
 		$this->load->view('templates/header');
 		$this->load->view('users/members', $data);
@@ -239,9 +290,9 @@ class Users extends BaseController{
 			redirect('home'); 
 		}
 
-		$data['title'] = 'Gestion des membres';
-		$data['subtitle'] = 'Modifier';
-		$data['userInfo'] = $this->user_model->get_profile($user_id);
+		$data['title']		= 'Gestion des membres';
+		$data['subtitle']	= 'Modifier';
+		$data['userInfo']	= $this->user_model->get_profile($user_id);
 
 		$this->load->view('templates/header');
 		$this->load->view('users/adminEdit', $data);
@@ -256,7 +307,6 @@ class Users extends BaseController{
 
 		} else if (!$this->session->userdata('admin_role')){
 			redirect('home'); 
-
 		}
 
 		$this->user_model->updateMember();
@@ -274,7 +324,6 @@ class Users extends BaseController{
 
 		} else if (!$this->session->userdata('admin_role')){
 			redirect('home'); 
-
 		}    
 
 		$this->user_model->deleteMember($user_id);
@@ -283,7 +332,6 @@ class Users extends BaseController{
 		$this->session->set_flashdata('member_deleted', 'Le compte a été supprimé!');
 
 		redirect('users/allMembers');
-
 	}
 
 	function getBrowserAgent(){
@@ -331,9 +379,22 @@ class Users extends BaseController{
 		$this->load->view('templates/header');
 		$this->load->view('users/login_history', $data);
 		$this->load->view('templates/footer');
-
-	   }
-	
-
-
+	}
+		
+	public function dashboard(){
+		// Check login
+		if(!$this->session->userdata('logged_in')){
+			redirect('users/login');	
+		}
+		
+		$data['title']		= 'Mon activité';
+		$data['subtitle']	= 'Tableau de bord';
+		$data['h2']			= 'Toutes mes discussions';
+		$data['user_posts']	= $this->post_model->get_user_posts($this->session->userdata('user_id'));
+			
+		$this->load->view('templates/header');
+		$this->load->view('users/dashboard', $data);
+		$this->load->view('templates/footer');
+		
+	}
 }
